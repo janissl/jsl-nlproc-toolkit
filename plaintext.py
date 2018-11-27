@@ -2,9 +2,9 @@
 """A set of methods for manipulation with plaintext."""
 
 import os
-# import sys
 import json
 import re
+from sklearn.feature_extraction.text import CountVectorizer
 
 
 class PlainText:
@@ -149,7 +149,7 @@ class PlainText:
             return ''
 
     @staticmethod
-    def build_language_model_ch(input_filepath, language, output_dirpath):
+    def build_language_model_ch(input_filepath, language, output_dirpath, ngram_range=(1, 4)):
         """Build a language model consisting of character n-grams in the JSON format.
 
         Use cases: language models for language detection (e.g. https://github.com/shuyo/language-detection)
@@ -157,24 +157,32 @@ class PlainText:
         :param str input_filepath: a plaintext filepath
         :param str language: an ISO 639-1 language code
         :param str output_dirpath: a path of the directory where to save the language model file
+        :param tuple ngram_range: the minimal and the maximal size of character ngrams to generate
         """
         model_filepath = os.path.join(output_dirpath, language)
 
         with open(input_filepath, encoding='utf-8') as source:
-            text = source.read()
+            text = [line.strip() for line in source.readlines()]
 
-        ngrams = PlainText.extract_char_ngrams(text, language)
-        ngram_freqs = dict()
+        vectorizer = CountVectorizer(analyzer='char', ngram_range=ngram_range)
+        matrix = vectorizer.fit_transform(text)
 
-        for ngram_values in ngrams.values():
-            for seq, freq in ngram_values.items():
-                ngram_freqs[seq] = freq
+        ngram_labels = vectorizer.get_feature_names()
+        ngram_frequency = matrix.toarray().astype(int).sum(axis=0)
+        ngram_freqs = {label: int(freq) for label, freq in zip(ngram_labels, ngram_frequency) if label.strip()}
 
         model_data = {'freq': ngram_freqs}
 
-        ngram_cnt_by_len = [len(ngrams[ngram_len]) for ngram_len in sorted(ngrams.keys())]
-        model_data['n_words'] = ngram_cnt_by_len
+        ngram_cnt_by_len = list()
 
+        for i in range(ngram_range[0], ngram_range[1] + 1):
+            counter = 0
+            ngram_cnt_by_len.append(counter)
+
+        for ngram, freq in ngram_freqs.items():
+            ngram_cnt_by_len[len(ngram) - 1] += int(freq)
+
+        model_data['n_words'] = ngram_cnt_by_len
         model_data['name'] = language
 
         with open(model_filepath, 'w', encoding='utf-8') as model_file:
@@ -185,9 +193,11 @@ class PlainText:
 #     in_path = r'lv.txt'
 #     lang = 'lv'
 #     dest_dir = r'C:\Users\janis_000\Documents'
+#     ngram_range = (1, 3)
 #
-#     PlainText.build_language_model_ch(in_path, lang, dest_dir)
+#     PlainText.build_language_model_ch(in_path, lang, dest_dir, ngram_range)
 #
 #
 # if __name__ == '__main__':
+#     import sys
 #     sys.exit(main())
