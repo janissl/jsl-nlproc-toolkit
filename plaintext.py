@@ -67,6 +67,9 @@ class PlainText:
         :return: a dictionary with n-grams and their frequency grouped by character sequence length (from min to max)
         :rtype: dict[int, dict[str, int]]
         """
+        if len(ngram_range) == 1:
+            ngram_range = (ngram_range[0], ngram_range[0])
+
         ngram_dict = dict()
 
         for i in range(1, 5):
