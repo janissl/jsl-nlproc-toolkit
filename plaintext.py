@@ -57,13 +57,14 @@ class PlainText:
         return tokens
 
     @staticmethod
-    def extract_char_ngrams(text, language):
+    def extract_char_ngrams(text, language, ngram_range=(1, 4)):
         """Create a dictionary with character n-gram lengths as keys
         and character sequences of a particular length as their values.
 
         :param str text: a plaintext
         :param str language: an ISO 639-1 language code
-        :return: a dictionary with n-grams and their frequency grouped by character sequence length (from 1 to 4)
+        :param tuple ngram_range: the minimal and maximal size of character n-grams to extract
+        :return: a dictionary with n-grams and their frequency grouped by character sequence length (from min to max)
         :rtype: dict[int, dict[str, int]]
         """
         ngram_dict = dict()
@@ -74,7 +75,7 @@ class PlainText:
         for line in text.split('\r?\n'):
             nl_words = PlainText.get_natural_language_words(line)
 
-            for i in range(1, 5):
+            for i in range(ngram_range[0], ngram_range[1] + 1):
                 for nlw in nl_words:
                     if not PlainText.is_valid_language_word(nlw, language):
                         continue
@@ -157,7 +158,7 @@ class PlainText:
         :param str input_filepath: a plaintext filepath
         :param str language: an ISO 639-1 language code
         :param str output_dirpath: a path of the directory where to save the language model file
-        :param tuple ngram_range: the minimal and the maximal size of character ngrams to generate
+        :param tuple ngram_range: the minimal and the maximal size of character n-grams to generate
         """
         model_filepath = os.path.join(output_dirpath, language)
 
