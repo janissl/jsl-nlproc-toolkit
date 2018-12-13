@@ -94,6 +94,24 @@ class PlainText:
         return ngram_dict
 
     @staticmethod
+    def string_to_char_ngram_string(text, ngram_length):
+        """Transform an input string into a string of character n-grams.
+        Word boundaries are marked with underscores.
+
+        :param str text: an input text (normally, a sentence)
+        :param int ngram_length: an n-gram length in characters
+        :return: a space-separated string of character n-grams
+        :rtype: str
+        """
+        ngrams = list()
+        sentence = '_{}_'.format('_'.join([word.lower() for word in text.split()]))
+
+        for i in range(len(sentence) - ngram_length + 1):
+            ngrams.append(sentence[i:i + ngram_length])
+
+        return ' '.join(ngrams)
+
+    @staticmethod
     def is_valid_language_word(word, language):
         """Classify whether a word is valid for the particular language.
 
